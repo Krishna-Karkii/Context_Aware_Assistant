@@ -1,4 +1,4 @@
-// Login.jsx
+// src/components/Login.jsx
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Database, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
@@ -6,34 +6,53 @@ import { Database, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
 export default function Login() {
   const navigate = useNavigate();
   
-  // 1. State for form fields and errors
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
 
-  // 2. Handle Input Changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    // Clear error when user starts typing again
     if (error) setError('');
   };
 
-  // 3. Validation Logic
+  const validateForm = () => {
+    // 1. Check Empty Fields
+    if (!formData.email.trim() || !formData.password.trim()) {
+      return 'Please enter both email and password.';
+    }
+
+    // 2. Email Regex Validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      return 'Please enter a valid email address.';
+    }
+
+    // 3. Strict Password Validation
+    // ^                 Start of string
+    // (?=.*[a-z])       At least one lowercase
+    // (?=.*[A-Z])       At least one uppercase
+    // (?=.*\d)          At least one number
+    // (?=.*[\W_])       At least one special char (non-word characters like !@#$%)
+    // .{8,12}           Length between 8 and 12
+    // $                 End of string
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,12}$/;
+    
+    if (!passwordRegex.test(formData.password)) {
+      return 'Password must be 8-12 chars with Uppercase, Lowercase, Number & Special Char.';
+    }
+
+    return null; // No errors
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Check for empty fields
-    if (!formData.email.trim() || !formData.password.trim()) {
-      setError('Please enter both email and password.');
+    
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
-    // specific validation (optional)
-    if (!formData.email.includes('@')) {
-      setError('Please enter a valid email address.');
-      return;
-    }
-
-    // If valid, navigate to Dashboard
+    // If validation passes, navigate
     navigate('/dashboard');
   };
 
@@ -50,10 +69,9 @@ export default function Login() {
             <p className="text-sm text-slate-500">Sign in to access the Graph RAG System</p>
           </div>
 
-          {/* Error Message Alert */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-600 text-sm">
-              <AlertCircle size={16} />
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-600 text-sm animate-in slide-in-from-top-2">
+              <AlertCircle size={16} className="flex-shrink-0" />
               <span>{error}</span>
             </div>
           )}
@@ -69,7 +87,7 @@ export default function Login() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="researcher@mbmc.edu.np" 
-                  className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-xl focus:outline-none focus:ring-2 transition-all text-sm ${error ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'}`}
+                  className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-xl focus:outline-none focus:ring-2 transition-all text-sm ${error && !formData.email ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'}`}
                 />
               </div>
             </div>
@@ -84,9 +102,12 @@ export default function Login() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••" 
-                  className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-xl focus:outline-none focus:ring-2 transition-all text-sm ${error ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'}`}
+                  className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-xl focus:outline-none focus:ring-2 transition-all text-sm ${error && !formData.password ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'}`}
                 />
               </div>
+              <p className="text-[10px] text-slate-400 mt-1 ml-1">
+                Must be 8-12 characters w/ Upper, Lower, Number & Symbol.
+              </p>
             </div>
 
             <button 
@@ -100,7 +121,6 @@ export default function Login() {
           <div className="mt-6 text-center">
             <p className="text-sm text-slate-500">
               Don't have an account?{' '}
-              {/* React Router Link */}
               <Link to="/signup" className="text-blue-600 font-semibold hover:underline">
                 Create Account
               </Link>
