@@ -25,3 +25,5 @@ dist-ssr
 
 # Unnecessary files/directories
 .venv/
+.env
+__pycache__/
