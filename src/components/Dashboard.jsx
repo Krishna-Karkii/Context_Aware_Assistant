@@ -63,6 +63,14 @@ const ThinkingIndicator = () => (
 // --- MAIN DASHBOARD COMPONENT ---
 export default function Dashboard() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+  // Check if user has token
+  const token = localStorage.getItem("access_token");
+  if (!token) {
+    // No token = not logged in, redirect to login
+    navigate('/');
+  }}, [navigate]);
   
   const [messages, setMessages] = useState([INITIAL_MESSAGE]);
   const [inputValue, setInputValue] = useState('');
