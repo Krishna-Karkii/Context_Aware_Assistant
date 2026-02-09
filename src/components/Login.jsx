@@ -1,5 +1,6 @@
 // src/components/Login.jsx
 import React, { useState } from 'react';
+import { loginUser } from '../api/client';
 import { useNavigate, Link } from 'react-router-dom';
 import { Database, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
 
@@ -43,17 +44,30 @@ export default function Login() {
     return null; // No errors
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const validationError = validateForm();
     if (validationError) {
       setError(validationError);
       return;
     }
 
-    // If validation passes, navigate
-    navigate('/dashboard');
+    // Add loading state
+    // Call API
+    try {
+      const response = await loginUser(formData.email, formData.password);
+      
+      // Store token
+      localStorage.setItem("access_token", response.access_token);
+      localStorage.setItem("user_email", formData.email);
+      
+      // Navigate
+      navigate('/dashboard');
+    } catch (err) {
+      // Show API error
+      setError(err.response?.data?.detail || "Login failed. Please try again.");
+    }
   };
 
   return (

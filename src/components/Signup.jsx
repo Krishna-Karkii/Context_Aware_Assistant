@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
+import { signupUser } from '../api/client';
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -42,7 +43,7 @@ export default function Signup() {
     return null;
   };
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     
     const validationError = validateForm();
@@ -51,8 +52,19 @@ export default function Signup() {
       return;
     }
 
-    // Success
-    navigate('/dashboard'); 
+    try {
+      const response = await signupUser(
+        formData.firstName,
+        formData.lastName,
+        formData.email,
+        formData.password
+      );
+      localStorage.setItem("access_token", response.access_token);
+      localStorage.setItem("user_email", formData.email);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.detail || "Signup failed. Please try again.");
+    }
   };
 
   return (

@@ -7,7 +7,8 @@ import logging
 from dotenv import load_dotenv
 import os
 
-from .pg_database.database import create_database_pool, initialize_database
+from backend.app.pg_database.database import create_database_pool, initialize_database
+from backend.app.routers import auth
 
 
 load_dotenv()
@@ -37,7 +38,9 @@ app = FastAPI(title="ML Research Assistant",
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth.router)
