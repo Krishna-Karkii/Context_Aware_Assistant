@@ -72,7 +72,7 @@ Top-20 candidates → MMR scoring: λ × relevance − (1−λ) × redundancy �
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/ml-research-assistant.git
+git clone https://github.com/your-username/Context_Aware_Assistant.git
 cd ml-research-assistant
 ```
 
