@@ -73,7 +73,7 @@ Top-20 candidates → MMR scoring: λ × relevance − (1−λ) × redundancy �
 
 ```bash
 git clone https://github.com/your-username/Context_Aware_Assistant.git
-cd ml-research-assistant
+cd Context_Aware_Assistant
 ```
 
 ### 2. Set up PostgreSQL
