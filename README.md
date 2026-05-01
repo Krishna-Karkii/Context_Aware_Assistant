@@ -185,7 +185,3 @@ The `document_chunks.embedding` column uses the `vector` type from pgvector with
 *B.A. in Computer Application — Madan Bhandari Memorial College, Tribhuvan University*
 
 ---
-
-## 📄 License
-
-This project is for academic purposes under the B.A. in Computer Application program at Tribhuvan University.
