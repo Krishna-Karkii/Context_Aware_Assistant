@@ -1,4 +1,4 @@
-# 🔬 ML Research Assistant
+# 🔬 Context Aware Assistant
 
 A web-based assistant that lets you upload documents, ask natural-language questions, and receive accurate, citation-backed answers — all grounded in your own private knowledge base.
 
