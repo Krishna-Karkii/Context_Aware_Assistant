@@ -1,41 +1,29 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.routing import APIRouter
 from contextlib import asynccontextmanager
-
 import logging
-from dotenv import load_dotenv
-import os
 
-from backend.app.pg_database.database import create_database_pool, initialize_database
+from backend.app.config import settings
+from backend.app.pg_database.database import create_database_pool
 from backend.app.routers import auth
+from backend.app.routers import research
+from backend.app.routers import kb
 
-
-load_dotenv()
-logging.basicConfig(
-    level=logging.INFO,
-    handlers=[logging.StreamHandler()],
-    force=True
-    )
+logging.basicConfig(level=logging.INFO, handlers=[logging.StreamHandler()], force=True)
 logger = logging.getLogger(__name__)
 
-DATABASE_URL = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@localhost/{os.getenv('DB_NAME')}"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.state.db_pool = await create_database_pool(db_url=DATABASE_URL)
-    logger.info("Created pool successfully, initializing database...")
-    await initialize_database(app.state.db_pool)
-    logger.info("Application Startup Complete.")
+    app.state.db_pool = await create_database_pool(settings.database_url)
+    logger.info("Startup complete.")
     yield
     await app.state.db_pool.close()
+    logger.info("Shutdown complete.")
 
 
-app = FastAPI(title="ML Research Assistant",
-              version="1.0",
-              lifespan=lifespan)
+app = FastAPI(title="ML Research Assistant", version="1.0", lifespan=lifespan)
 
-# CORS configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
@@ -44,3 +32,5 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(research.router)
+app.include_router(kb.router)

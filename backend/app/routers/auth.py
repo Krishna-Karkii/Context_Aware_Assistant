@@ -1,74 +1,45 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
-
-from backend.app.jwt_utils import create_access_token
+from fastapi import APIRouter, Depends, HTTPException
+from backend.app.pg_database.database import get_conn
 from backend.app.pg_database.schemas import UserCreate, UserLogin
-from logging import getLogger
+from backend.app.jwt_utils import create_access_token
 from backend.app.utils import hash_password, validate_password
 from uuid6 import uuid7
+import asyncpg
+import logging
 
-
-logger = getLogger(__name__)
-
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-async def get_db(request: Request):
-    """
-    """
-    return request.app.state.db_pool
-
 @router.post("/signup")
-async def signup(user: UserCreate, db=Depends(get_db)):
-    """
-    """
-    try:
-        async with db.acquire() as connection:
-            existing_user = await connection.fetchrow("SELECT * FROM users WHERE email = $1", user.email)
-            if existing_user:
-                raise HTTPException(status_code=400, detail="Email already registered")
-            # Hashing the password
-            hashed_password = hash_password(user.password)
+async def signup(user: UserCreate, conn: asyncpg.Connection = Depends(get_conn)):
+    existing = await conn.fetchrow(
+        "SELECT id FROM users WHERE email = $1", user.email
+    )
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
 
-            # Registering the user in the database
-            user_id = uuid7()
-            query = """INSERT INTO users (id, first_name, last_name, email, password) VALUES ($1, $2, $3, $4, $5)"""
-            await connection.execute(query, user_id, user.firstName, user.lastName, user.email, hashed_password)
+    user_id = uuid7()
+    hashed = hash_password(user.password)
 
-            logger.info(f"User {user.email} created succesfully with ID {user_id}")
+    await conn.execute(
+        """INSERT INTO users (id, first_name, last_name, email, password)
+           VALUES ($1, $2, $3, $4, $5)""",
+        user_id, user.firstName, user.lastName, user.email, hashed
+    )
 
-            # Creating a JWT token
-            access_token = create_access_token(data={"sub": str(user.email)})
-            return {
-                "access_token": access_token,
-                "token_type": "bearer",
-                "message": "User Created Successfully."
-            }
-    except Exception as e:
-        logger.error(f"Error during signup: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-    
+    token = create_access_token(str(user_id))
+    logger.info(f"User created: {user.email} ({user_id})")
+    return {"access_token": token, "token_type": "bearer"}
+
 
 @router.post("/login")
-async def login(user: UserLogin, db = Depends(get_db)):
-    """
-    """
-    try:
-        async with db.acquire() as connection:
-            existing_user = await connection.fetchrow("SELECT * FROM users WHERE email = $1", user.email)
-            if not existing_user or not validate_password(user.password, existing_user['password']):
-                raise HTTPException(status_code=400, detail="Invalid email or password")
-            
-            logger.info(f"User {user.email} logged in successfully.")
+async def login(user: UserLogin, conn: asyncpg.Connection = Depends(get_conn)):
+    row = await conn.fetchrow(
+        "SELECT id, password FROM users WHERE email = $1", user.email
+    )
+    if not row or not validate_password(user.password, row["password"]):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
 
-            # Creating a JWT token
-            access_token = create_access_token(
-                data={"sub": str(user.email)}
-            )
-            logger.info(f"Access token created for user {access_token} sucessfully. {type(access_token)}")
-            return {
-                "access_token": access_token,
-                "token_type": "bearer",
-                "message": "Login Successful"
-                }
-    except Exception as e:
-        logger.error(f"Error during login: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    token = create_access_token(str(row["id"]))
+    logger.info(f"User logged in: {user.email}")
+    return {"access_token": token, "token_type": "bearer"}

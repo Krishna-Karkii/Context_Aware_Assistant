@@ -78,9 +78,9 @@ export default function Login() {
             <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center text-white mx-auto mb-4 shadow-lg shadow-slate-900/20">
               <Database size={24} />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 mb-2">ML Research Assistant</h1>
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">Context Aware Assistant</h1>
             <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">Madan Bhandari Memorial College</p>
-            <p className="text-sm text-slate-500">Sign in to access the Graph RAG System</p>
+            <p className="text-sm text-slate-500">Sign in to access the RAG System</p>
           </div>
 
           {error && (

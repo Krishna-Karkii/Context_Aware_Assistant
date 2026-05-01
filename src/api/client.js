@@ -4,116 +4,64 @@ const API_BASE_URL = "http://localhost:8000";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  headers: { "Content-Type": "application/json" },
 });
 
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("access_token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-      console.log("[API] Added token to request header");
-    }
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 apiClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      console.log("[API] Received 401 - clearing token and redirecting to login");
       localStorage.removeItem("access_token");
-      window.location.href = "/login";
+      window.location.href = "/";
     }
     return Promise.reject(error);
   }
 );
 
+
 export const signupUser = async (firstName, lastName, email, password) => {
-  try {
-    console.log(`[API] Signing up user: ${email}`);
-    const response = await apiClient.post("/auth/signup", {
-      firstName,
-      lastName,
-      email,
-      password,
-    });
-    console.log("[API] Signup successful");
-    return response.data;
-  } catch (error) {
-    console.error("[API] Signup failed:", error.response?.data || error.message);
-    throw error;
-  }
+  const res = await apiClient.post("/auth/signup", { firstName, lastName, email, password });
+  return res.data;
 };
 
 export const loginUser = async (email, password) => {
-  try {
-    console.log(`[API] Logging in user: ${email}`);
-    const response = await apiClient.post("/auth/login", {
-      email,
-      password,
-    });
-    console.log("[API] Login successful");
-    return response.data;
-  } catch (error) {
-    console.error("[API] Login failed:", error.response?.data || error.message);
-    throw error;
-  }
+  const res = await apiClient.post("/auth/login", { email, password });
+  return res.data;
 };
 
-/**
- * Submit a research query to the backend.
- * 
- * @param {string} query - The research question
- * 
- * @returns {Promise<{response: string, citations: Array}>}
- *          Response with AI answer and citations
- * 
- * @throws {AxiosError} If server error or authentication fails
- * 
- * Example:
- *   >>> const result = await submitQuery("What is RAG?");
- *   >>> console.log(result.response);
- *   >>> console.log(result.citations);
- */
-export const submitQuery = async (query) => {
-  try {
-    console.log("[API] Submitting query:", query);
-    
-    const response = await apiClient.post("/research/query", {
-      query,
-    });
-    
-    console.log("[API] Query response received");
-    return response.data;
-    
-  } catch (error) {
-    console.error("[API] Query failed:", error.response?.data || error.message);
-    throw error;
-  }
+export const submitQuery = async (query, threadId = null) => {
+  const body = { query };
+  if (threadId) body.thread_id = threadId;
+  const res = await apiClient.post("/research/query", body);
+  return res.data;
 };
 
-export const isAuthenticated = () => {
-  const token = localStorage.getItem("access_token");
-  return !!token;
+export const getThreads = async () => {
+  const res = await apiClient.get("/research/threads");
+  return res.data; 
 };
 
-export const getToken = () => {
-  return localStorage.getItem("access_token");
+
+export const getThread = async (threadId) => {
+  const res = await apiClient.get(`/research/threads/${threadId}`);
+  return res.data;
 };
+
+
+export const isAuthenticated = () => !!localStorage.getItem("access_token");
 
 export const logout = () => {
-  console.log("[API] Logging out user");
   localStorage.removeItem("access_token");
-  window.location.href = "/login";
+  window.location.href = "/";
 };
 
 export default apiClient;

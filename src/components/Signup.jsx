@@ -76,7 +76,7 @@ export default function Signup() {
               <User size={24} />
             </div>
             <h1 className="text-2xl font-bold text-slate-900 mb-2">Create Account</h1>
-            <p className="text-sm text-slate-500">Join the research network</p>
+            <p className="text-sm text-slate-500">Join the network</p>
           </div>
 
           {error && (
